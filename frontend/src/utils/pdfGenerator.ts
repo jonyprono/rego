@@ -198,14 +198,14 @@ export const generateReportPDF = async (reportData: any) => {
       doc.text(title, margin + 4, currentY + 5.5);
       currentY += 8 + 5;
 
-      // 3 images per row
-      const imgWidth = 55;
-      const imgHeight = 40;
-      const gap = (contentWidth - (imgWidth * 3)) / 2;
+      // 2 images per row
+      const imgWidth = 80;
+      const imgHeight = 60;
+      const gap = 12;
       
       const rows = [];
-      for (let i = 0; i < images.length; i += 3) {
-        rows.push(images.slice(i, i + 3));
+      for (let i = 0; i < images.length; i += 2) {
+        rows.push(images.slice(i, i + 2));
       }
       
       for (const row of rows) {
