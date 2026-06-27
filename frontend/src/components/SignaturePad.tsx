@@ -36,9 +36,7 @@ export default function SignaturePad({ onSave, label = "Signature du client" }: 
         <SignatureCanvas
           ref={sigCanvas}
           canvasProps={{
-            className: 'signature-canvas w-full h-48 cursor-crosshair bg-white rounded-lg',
-            width: 800,
-            height: 200
+            className: 'signature-canvas w-full h-48 cursor-crosshair bg-white rounded-lg'
           }}
           onEnd={handleEnd}
         />

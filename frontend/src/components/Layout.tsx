@@ -59,7 +59,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto w-full relative pb-20 md:pb-0">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden w-full relative pb-20 md:pb-0">
         {/* Mobile Header (Top) */}
         <div className="md:hidden bg-white shadow-sm sticky top-0 z-30 px-4 py-3 flex items-center justify-center">
           <img src="/logo rego.jpg" alt="Rego" className="h-8 object-contain" />
