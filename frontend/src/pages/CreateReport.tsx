@@ -227,14 +227,14 @@ export default function CreateReport() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
-      <div className="flex items-center space-x-4 mb-8">
-        <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-sm text-gray-500 hover:text-primary-600 transition-colors">
-          <ArrowLeft size={24} />
+    <div className="max-w-4xl mx-auto pb-32 sm:pb-24">
+      <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6 sm:mb-8">
+        <button onClick={() => navigate(-1)} className="self-start sm:self-auto p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-500 hover:text-primary-600 transition-colors">
+          <ArrowLeft size={24} className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900">{isEditMode ? 'Modifier le Rapport' : 'Nouveau Rapport d\'Intervention'}</h1>
-          <p className="text-gray-500 mt-1">{isEditMode ? 'Mettez à jour les informations du rapport.' : 'Veuillez remplir toutes les sections obligatoires.'}</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">{isEditMode ? 'Modifier le Rapport' : 'Nouveau Rapport d\'Intervention'}</h1>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">{isEditMode ? 'Mettez à jour les informations du rapport.' : 'Veuillez remplir toutes les sections obligatoires.'}</p>
         </div>
       </div>
 
@@ -268,7 +268,7 @@ export default function CreateReport() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Heure de fin *</label>
               <input type="time" {...register('endTime', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
             </div>
-            <div className="md:col-span-2 grid grid-cols-3 gap-6 bg-gray-50 p-4 rounded-lg">
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 bg-gray-50 p-4 rounded-lg">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Durée (calculée)</label>
                 <div className="p-3 bg-white border border-gray-200 rounded-lg text-gray-600 font-medium">{calculateDuration()} h</div>
@@ -317,8 +317,8 @@ export default function CreateReport() {
         <Section title="Équipe Technique" step={3}>
           <div className="space-y-4">
             {fields.map((item, index) => (
-              <div key={item.id} className="flex items-end space-x-4 bg-gray-50 p-4 rounded-lg">
-                <div className="flex-1">
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-end gap-3 sm:space-x-4 bg-gray-50 p-4 rounded-lg">
+                <div className="flex-1 w-full">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
                   <input type="text" {...register(`technicians.${index}.fullName` as const, { required: true })} className="w-full p-3 border border-gray-300 rounded-lg" placeholder="Jean Dupont" />
                 </div>
@@ -377,17 +377,17 @@ export default function CreateReport() {
         </Section>
 
         {/* Submit */}
-        <div className="fixed bottom-0 left-0 right-0 w-full bg-white py-4 px-6 md:px-12 lg:px-24 xl:px-48 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] border-t border-gray-200 z-50 flex justify-end items-center space-x-4">
-          <button type="button" onClick={() => navigate('/')} className="px-6 py-3 font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+        <div className="fixed bottom-[68px] md:bottom-0 left-0 right-0 w-full bg-white py-3 sm:py-4 px-4 md:px-12 lg:px-24 xl:px-48 shadow-[0_-8px_20px_rgba(0,0,0,0.06)] border-t border-gray-200 z-40 flex justify-between sm:justify-end items-center sm:space-x-4">
+          <button type="button" onClick={() => navigate('/')} className="px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base hidden sm:block">
             Annuler
           </button>
           <button 
             type="submit" 
             disabled={isSubmitting}
-            className="flex items-center px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg shadow-lg shadow-primary-500/30 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex justify-center items-center px-6 sm:px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg shadow-lg shadow-primary-500/30 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base"
           >
-            <Save size={20} className="mr-2" />
-            {isSubmitting ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour et Générer PDF' : 'Valider et Générer PDF')}
+            <Save size={20} className="mr-2 hidden sm:block" />
+            {isSubmitting ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour et Générer' : 'Valider et Générer PDF')}
           </button>
         </div>
       </form>
