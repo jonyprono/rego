@@ -93,7 +93,7 @@ export default function Register() {
               {/* Informations Personnelles */}
               <div className="space-y-4 sm:space-y-5">
                 <h3 className="text-base sm:text-lg font-bold text-secondary-900 border-b border-gray-100/50 pb-2">Informations personnelles</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-secondary-800">Prénom</label>
                     <div className="relative group">
@@ -170,7 +170,7 @@ export default function Register() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-secondary-800">Mot de passe</label>
                     <div className="relative group">
