@@ -27,7 +27,8 @@ export default function Dashboard() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/reports', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        const response = await axios.get(`${API_URL}/reports`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

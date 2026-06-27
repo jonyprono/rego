@@ -1,5 +1,33 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
+import { uploadBase64Image } from '../utils/cloudinary';
+
+const processPhotoArray = async (photoJsonString?: string): Promise<string | undefined> => {
+  if (!photoJsonString) return undefined;
+  try {
+    const photos: string[] = JSON.parse(photoJsonString);
+    const uploadedUrls = await Promise.all(
+      photos.map(async (base64) => {
+        if (base64.startsWith('data:image')) {
+          return await uploadBase64Image(base64);
+        }
+        return base64;
+      })
+    );
+    return JSON.stringify(uploadedUrls);
+  } catch (error) {
+    console.error("Erreur lors du traitement des photos:", error);
+    return photoJsonString;
+  }
+};
+
+const processSignature = async (signature?: string): Promise<string | undefined> => {
+  if (!signature) return undefined;
+  if (signature.startsWith('data:image')) {
+    return await uploadBase64Image(signature);
+  }
+  return signature;
+};
 
 export const createReport = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -11,11 +39,6 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
       technicians // Array of { fullName, techId }
     } = req.body;
     
-    console.log("Body reçu :", req.body);
-    console.log("Files reçus :", req.files);
-    // @ts-ignore
-    console.log("User :", req.user);
-    
     // @ts-ignore
     const userId = req.user?.id;
 
@@ -23,6 +46,12 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
     const count = await prisma.report.count();
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const reportNumber = `REP-${dateStr}-${(count + 1).toString().padStart(4, '0')}`;
+
+    // Upload photos to Cloudinary
+    const processedSituationBefore = await processPhotoArray(situationBefore);
+    const processedSituationAfter = await processPhotoArray(situationAfter);
+    const processedPresencePhotos = await processPhotoArray(presencePhotos);
+    const processedSignature = await processSignature(clientSignature);
 
     const newReport = await prisma.report.create({
       data: {
@@ -39,15 +68,15 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
         clientAddress,
         clientDepartment,
         problemsEncountered,
-        situationBefore,
+        situationBefore: processedSituationBefore,
         solutionProvided,
-        situationAfter,
+        situationAfter: processedSituationAfter,
         remarks,
         clientRepresentative,
         representativeRole,
-        validationDate: clientSignature ? new Date() : null,
-        clientSignature, // Base64 signature
-        presencePhotos,
+        validationDate: processedSignature ? new Date() : null,
+        clientSignature: processedSignature,
+        presencePhotos: processedPresencePhotos,
         userId,
         technicians: {
           create: technicians || []
@@ -165,6 +194,12 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
       where: { reportId: Number(id) }
     });
 
+    // Upload new photos to Cloudinary if they are base64 strings
+    const processedSituationBefore = situationBefore !== undefined ? await processPhotoArray(situationBefore) : existingReport.situationBefore;
+    const processedSituationAfter = situationAfter !== undefined ? await processPhotoArray(situationAfter) : existingReport.situationAfter;
+    const processedPresencePhotos = presencePhotos !== undefined ? await processPhotoArray(presencePhotos) : existingReport.presencePhotos;
+    const processedSignature = clientSignature !== undefined ? await processSignature(clientSignature) : existingReport.clientSignature;
+
     const updatedReport = await prisma.report.update({
       where: { id: Number(id) },
       data: {
@@ -180,15 +215,15 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
         clientAddress,
         clientDepartment,
         problemsEncountered,
-        situationBefore,
+        situationBefore: processedSituationBefore,
         solutionProvided,
-        situationAfter,
+        situationAfter: processedSituationAfter,
         remarks,
         clientRepresentative,
         representativeRole,
-        validationDate: clientSignature ? new Date() : existingReport.validationDate,
-        clientSignature: clientSignature !== undefined ? clientSignature : existingReport.clientSignature,
-        presencePhotos: presencePhotos !== undefined ? presencePhotos : existingReport.presencePhotos,
+        validationDate: processedSignature ? new Date() : existingReport.validationDate,
+        clientSignature: processedSignature,
+        presencePhotos: processedPresencePhotos,
         technicians: {
           create: technicians || []
         }

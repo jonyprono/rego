@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -38,18 +38,18 @@ model Report {
   clientDepartment    String
   
   // Observations
-  problemsEncountered String?      @db.Text
-  situationBefore     String?      @db.LongText
-  solutionProvided    String?      @db.Text
-  situationAfter      String?      @db.LongText
-  remarks             String?      @db.Text
+  problemsEncountered String?
+  situationBefore     String?
+  solutionProvided    String?
+  situationAfter      String?
+  remarks             String?
 
   // Validation
   clientRepresentative String?
   representativeRole   String?
   validationDate       DateTime?
-  clientSignature      String?      @db.LongText // Base64 string or file path
-  presencePhotos       String?      @db.LongText
+  clientSignature      String?      // Cloudinary URL
+  presencePhotos       String?      // JSON string of URLs
 
   technicians         Technician[]
   photos              Photo[]

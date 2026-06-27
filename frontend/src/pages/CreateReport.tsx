@@ -125,7 +125,8 @@ export default function CreateReport() {
       const fetchReport = async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await axios.get(`http://localhost:3000/api/reports/${id}`, {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const response = await axios.get(`${API_URL}/reports/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           const data = response.data;
@@ -198,11 +199,13 @@ export default function CreateReport() {
       
       let response;
       if (isEditMode) {
-        response = await axios.put(`http://localhost:3000/api/reports/${id}`, payload, {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        response = await axios.put(`${API_URL}/reports/${id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        response = await axios.post('http://localhost:3000/api/reports', payload, {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        response = await axios.post(`${API_URL}/reports`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
