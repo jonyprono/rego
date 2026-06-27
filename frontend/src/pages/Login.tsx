@@ -35,7 +35,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-start pt-16 sm:justify-center sm:pt-4 p-4">
       {/* Subtle Background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
