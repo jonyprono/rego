@@ -40,60 +40,57 @@ export const generateReportPDF = async (reportData: any) => {
   // --- 1. LOGO & HEADER ---
   try {
     const logoBase64 = await getBase64ImageFromURL('/logo rego.jpg');
-    // Centered logo, reduced by ~35% (from 35x18 to 23x12)
-    const logoWidth = 23;
-    const logoHeight = 12;
+    const logoWidth = 28;
+    const logoHeight = 14;
     doc.addImage(logoBase64, 'JPEG', (pageWidth - logoWidth) / 2, currentY, logoWidth, logoHeight);
-    currentY += logoHeight + 8; // Small space between logo and banner
+    currentY += logoHeight + 10;
   } catch (e) {
     console.error("Logo introuvable");
     currentY += 15;
   }
 
-  // --- 2. DARK BLUE BANNER ---
-  doc.setFillColor(30, 64, 115); // Dark blue like in the screenshot
+  // --- 2. PREMIUM BANNER ---
+  doc.setFillColor(15, 38, 70); // Very elegant dark slate blue
   const bannerHeight = 45;
-  doc.roundedRect(margin, currentY, contentWidth, bannerHeight, 2, 2, 'F');
+  doc.roundedRect(margin, currentY, contentWidth, bannerHeight, 3, 3, 'F');
   
   doc.setTextColor(255);
   
   // A. TITRE
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("RAPPORT D'INTERVENTION", pageWidth / 2, currentY + 14, { align: 'center' });
+  doc.text("RAPPORT D'INTERVENTION", pageWidth / 2, currentY + 16, { align: 'center' });
   
   // B. SOUS-TITRE
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text(reportData.interventionType || "Maintenance", pageWidth / 2, currentY + 22, { align: 'center' });
+  doc.setTextColor(200, 215, 230);
+  doc.text(reportData.interventionType?.toUpperCase() || "MAINTENANCE", pageWidth / 2, currentY + 24, { align: 'center' });
 
   // C. DATE & D. CLIENT
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
+  doc.setTextColor(255);
   const dateStr = `Date : ${new Date(reportData.date || new Date()).toLocaleDateString('fr-FR')}`;
-  doc.text(dateStr, margin + 5, currentY + 32);
+  doc.text(dateStr, margin + 8, currentY + 36);
   
   const clientStr = `Client : ${reportData.clientName?.toUpperCase() || 'N/A'}`;
-  doc.text(clientStr, pageWidth - margin - 5, currentY + 32, { align: 'right' });
+  doc.text(clientStr, pageWidth - margin - 8, currentY + 36, { align: 'right' });
 
-  // E. NUMÉRO DU RAPPORT
-  const reportNoStr = `N° : ${reportData.reportNumber || 'Brouillon'}`;
-  doc.text(reportNoStr, margin + 5, currentY + 40);
+  currentY += bannerHeight + 12;
 
-  currentY += bannerHeight + 10;
-
-  // --- 3. DÉTAILS INTERVENTION (AutoTable) ---
+  // --- 3. DÉTAILS INTERVENTION ---
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 64, 115);
+  doc.setTextColor(15, 38, 70);
   doc.text("Détails Intervention", margin, currentY);
-  currentY += 4;
+  currentY += 5;
 
   autoTable(doc, {
     startY: currentY,
     theme: 'grid',
-    styles: { fontSize: 9, cellPadding: 4, lineColor: [200, 200, 200], lineWidth: 0.2 },
-    headStyles: { fillColor: [245, 245, 245], textColor: [50, 50, 50], fontStyle: 'bold' },
+    styles: { fontSize: 9, cellPadding: 5, lineColor: [220, 220, 220], lineWidth: 0.1 },
+    headStyles: { fillColor: [248, 250, 252], textColor: [30, 41, 59], fontStyle: 'bold' },
     body: [
       [
         { content: `Type: ${reportData.interventionType || 'N/A'}` },
@@ -103,135 +100,160 @@ export const generateReportPDF = async (reportData: any) => {
         { content: `Durée: ${reportData.duration || 0}h` }
       ],
       [
-        { content: `Trimestre: ${reportData.quarter || 'N/A'}`, colSpan: 5 }
+        { content: `N° de Rapport: ${reportData.reportNumber || 'Brouillon'}`, colSpan: 2 },
+        { content: `Trimestre: ${reportData.quarter || 'N/A'}`, colSpan: 3 }
       ]
     ],
   });
-  currentY = (doc as any).lastAutoTable.finalY + 6;
+  currentY = (doc as any).lastAutoTable.finalY + 8;
 
   // --- 4. ENTREPRISE CLIENT ---
   checkPageBreak(25);
-  doc.setFontSize(14);
-  doc.setTextColor(26, 54, 93);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(15, 38, 70);
   doc.text('Entreprise Client', margin, currentY);
-  currentY += 6;
+  currentY += 5;
 
-  // Formatting identical to details table
   const clientData = [
-    ['Nom:', reportData.clientName, 'Agence:', reportData.agencyName || 'N/A'],
-    ['Adresse:', reportData.clientAddress, 'Département:', reportData.clientDepartment]
+    ['Nom complet:', reportData.clientName, 'Agence:', reportData.agencyName || 'N/A'],
+    ['Adresse postale:', reportData.clientAddress, 'Département:', reportData.clientDepartment]
   ];
 
   autoTable(doc, {
     startY: currentY,
     body: clientData,
     theme: 'grid',
-    styles: { fontSize: 9, cellPadding: 4, lineColor: [200, 200, 200], lineWidth: 0.2 },
+    styles: { fontSize: 9, cellPadding: 5, lineColor: [220, 220, 220], lineWidth: 0.1 },
     columnStyles: {
-      0: { fontStyle: 'bold', fillColor: [245, 245, 245], textColor: [50, 50, 50], cellWidth: 30 },
-      1: { cellWidth: 60, textColor: [50, 50, 50] },
-      2: { fontStyle: 'bold', fillColor: [245, 245, 245], textColor: [50, 50, 50], cellWidth: 30 },
-      3: { cellWidth: 60, textColor: [50, 50, 50] }
+      0: { fontStyle: 'bold', fillColor: [248, 250, 252], textColor: [30, 41, 59], cellWidth: 35 },
+      1: { cellWidth: 55, textColor: [50, 50, 50] },
+      2: { fontStyle: 'bold', fillColor: [248, 250, 252], textColor: [30, 41, 59], cellWidth: 35 },
+      3: { cellWidth: 55, textColor: [50, 50, 50] }
     }
   });
-  currentY = (doc as any).lastAutoTable.finalY + 6;
+  currentY = (doc as any).lastAutoTable.finalY + 8;
 
   // --- 5. ÉQUIPE TECHNIQUE ---
   checkPageBreak(25);
   const technicians = reportData.technicians?.length ? reportData.technicians : [{ fullName: 'Aucun', techId: '-' }];
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 64, 115);
+  doc.setTextColor(15, 38, 70);
   doc.text(`Équipe Technique (${technicians.length})`, margin, currentY);
-  currentY += 4;
+  currentY += 5;
 
   autoTable(doc, {
     startY: currentY,
     theme: 'grid',
-    headStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50] },
-    styles: { fontSize: 9, cellPadding: 3, lineColor: [200, 200, 200], lineWidth: 0.2 },
-    head: [['Nom complet', 'Identifiant']],
-    body: technicians.map((t: any) => [t.fullName, t.techId]),
+    headStyles: { fillColor: [248, 250, 252], textColor: [30, 41, 59], fontStyle: 'bold' },
+    styles: { fontSize: 9, cellPadding: 4, lineColor: [220, 220, 220], lineWidth: 0.1 },
+    head: [['Nom complet', 'Identifiant', 'Rôle']],
+    body: technicians.map((t: any) => [t.fullName, t.techId || 'N/A', 'Technicien']),
   });
-  currentY = (doc as any).lastAutoTable.finalY + 6;
+  currentY = (doc as any).lastAutoTable.finalY + 8;
 
   // Helper for text sections
   const addTextSection = (title: string, content: string, headerColor: number[]) => {
-    checkPageBreak(25);
+    checkPageBreak(30);
     // Header
     doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
-    doc.rect(margin, currentY, contentWidth, 7, 'F');
+    doc.roundedRect(margin, currentY, contentWidth, 8, 1, 1, 'F');
     doc.setTextColor(255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text(title, margin + 3, currentY + 5);
-    currentY += 7;
+    doc.text(title, margin + 4, currentY + 5.5);
+    currentY += 8;
     
     // Border for content
-    doc.setDrawColor(200, 200, 200);
+    doc.setDrawColor(220, 220, 220);
+    doc.setFillColor(250, 250, 250);
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
     
-    const splitText = doc.splitTextToSize(content || 'Aucun', contentWidth - 6);
-    const boxHeight = Math.max(12, splitText.length * 5 + 4);
+    const splitText = doc.splitTextToSize(content || 'Aucune information fournie.', contentWidth - 8);
+    const boxHeight = Math.max(14, splitText.length * 5 + 6);
     
-    doc.rect(margin, currentY, contentWidth, boxHeight);
-    doc.text(splitText, margin + 3, currentY + 5);
+    doc.roundedRect(margin, currentY, contentWidth, boxHeight, 1, 1, 'FD');
+    doc.text(splitText, margin + 4, currentY + 6);
     
-    currentY += boxHeight + 6;
+    currentY += boxHeight + 8;
   };
 
   // Helper for images sections (GRID)
-  const addImagesSection = (title: string, imagesJson: string, headerColor: number[]) => {
+  const addImagesSection = async (title: string, imagesJson: string, headerColor: number[]) => {
     if (!imagesJson) return;
     try {
       const images: string[] = JSON.parse(imagesJson);
       if (images.length === 0) return;
 
-      checkPageBreak(35);
+      checkPageBreak(45);
 
       // Header
       doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
-      doc.rect(margin, currentY, contentWidth, 7, 'F');
+      doc.roundedRect(margin, currentY, contentWidth, 8, 1, 1, 'F');
       doc.setTextColor(255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      doc.text(title, margin + 3, currentY + 5);
-      currentY += 7 + 3;
+      doc.text(title, margin + 4, currentY + 5.5);
+      currentY += 8 + 5;
 
       // 3 images per row
       const imgWidth = 55;
       const imgHeight = 40;
       const gap = (contentWidth - (imgWidth * 3)) / 2;
       
-      // Group images into rows of 3
       const rows = [];
       for (let i = 0; i < images.length; i += 3) {
         rows.push(images.slice(i, i + 3));
       }
       
-      rows.forEach(row => {
-        checkPageBreak(imgHeight + 10);
+      for (const row of rows) {
+        checkPageBreak(imgHeight + 15);
         
-        // Center the row
         const rowWidth = row.length * imgWidth + (row.length - 1) * gap;
         const startX = margin + (contentWidth - rowWidth) / 2;
         
-        row.forEach((base64, idx) => {
+        for (let idx = 0; idx < row.length; idx++) {
+          const base64 = row[idx];
           const x = startX + idx * (imgWidth + gap);
           
           // Frame
-          doc.setDrawColor(200, 200, 200);
-          doc.rect(x - 1, currentY - 1, imgWidth + 2, imgHeight + 2);
+          doc.setDrawColor(220, 220, 220);
+          doc.setFillColor(248, 250, 252);
+          doc.roundedRect(x - 1, currentY - 1, imgWidth + 2, imgHeight + 2, 1, 1, 'FD');
           
-          const match = base64.match(/^data:image\/(png|jpeg|jpg);base64,/);
+          const match = base64.match(/^data:image\/(png|jpeg|jpg);base64,/i);
           const format = match ? match[1].toUpperCase() : 'JPEG';
           
-          doc.addImage(base64, format === 'JPG' ? 'JPEG' : format, x, currentY, imgWidth, imgHeight);
-        });
+          // Get dimensions to preserve aspect ratio
+          const {w, h} = await new Promise<{w: number, h: number}>(resolve => {
+            const img = new Image();
+            img.onload = () => resolve({w: img.width, h: img.height});
+            img.onerror = () => resolve({w: imgWidth, h: imgHeight});
+            img.src = base64;
+          });
+          
+          const intrinsicRatio = w / h;
+          const targetRatio = imgWidth / imgHeight;
+          let drawW = imgWidth;
+          let drawH = imgHeight;
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          if (intrinsicRatio > targetRatio) {
+            drawH = imgWidth / intrinsicRatio;
+            offsetY = (imgHeight - drawH) / 2;
+          } else {
+            drawW = imgHeight * intrinsicRatio;
+            offsetX = (imgWidth - drawW) / 2;
+          }
+          
+          doc.addImage(base64, format === 'JPG' ? 'JPEG' : format, x + offsetX, currentY + offsetY, drawW, drawH);
+        }
         
-        currentY += imgHeight + 5;
-      });
+        currentY += imgHeight + 8;
+      }
       
       currentY += 2;
 
@@ -241,9 +263,8 @@ export const generateReportPDF = async (reportData: any) => {
   };
 
   // --- 6. SECTIONS DYNAMIQUES ---
-  const headerBgColor = [71, 85, 105]; // Professional, unobtrusive Slate Grey
+  const headerBgColor = [51, 65, 85]; // Slate 700
   
-  // Find presence photos (fallback to presencePhotos payload or relations)
   const presencePhotosObj = reportData.photos?.filter((p: any) => p.type === 'presence').map((p: any) => p.url) || [];
   let presencePhotosStr = '';
   if (reportData.presencePhotos) {
@@ -252,74 +273,86 @@ export const generateReportPDF = async (reportData: any) => {
      presencePhotosStr = JSON.stringify(presencePhotosObj);
   }
 
-  // 1. Présence sur site
-  addImagesSection('Présence sur Site', presencePhotosStr, headerBgColor);
+  await addImagesSection('Présence sur Site', presencePhotosStr, headerBgColor);
+  await addImagesSection('Avant Intervention', reportData.situationBefore, headerBgColor);
   
-  // 2. Image Avant Intervention
-  addImagesSection('Avant Intervention', reportData.situationBefore, headerBgColor);
-  
-  // 3. Problématiques Rencontrées
   addTextSection('Problématiques Rencontrées', reportData.problemsEncountered, headerBgColor);
   
-  // 4. Image Après Intervention
-  addImagesSection('Après Intervention', reportData.situationAfter, headerBgColor);
+  await addImagesSection('Après Intervention', reportData.situationAfter, headerBgColor);
   
-  // 5. Solution Apportée
   addTextSection('Solution Apportée', reportData.solutionProvided, headerBgColor);
   
-  // 6. Remarques et Observations
   if (reportData.remarks) {
     addTextSection('Remarques', reportData.remarks, headerBgColor);
   }
 
   // --- 7. SIGNATURE ---
-  checkPageBreak(60);
+  checkPageBreak(65);
   doc.setFontSize(14);
-  doc.setTextColor(26, 54, 93);
-  doc.text('Validation Client', 14, currentY);
+  doc.setTextColor(15, 38, 70);
+  doc.text('Validation Client', margin, currentY);
   currentY += 6;
 
-  // Draw signature box
-  doc.setDrawColor(226, 232, 240);
+  doc.setDrawColor(220, 220, 220);
   doc.setFillColor(248, 250, 252);
-  doc.rect(14, currentY, 182, 38, 'FD');
+  doc.roundedRect(margin, currentY, contentWidth, 40, 2, 2, 'FD');
 
   if (reportData.clientSignature) {
     try {
-      // Scale and center signature inside the box
-      doc.addImage(reportData.clientSignature, 'PNG', 30, currentY + 4, 50, 20);
+      const {w, h} = await new Promise<{w: number, h: number}>(resolve => {
+        const img = new Image();
+        img.onload = () => resolve({w: img.width, h: img.height});
+        img.onerror = () => resolve({w: 60, h: 25});
+        img.src = reportData.clientSignature;
+      });
+      
+      const targetW = 60;
+      const targetH = 25;
+      const intrinsicRatio = w / h;
+      const targetRatio = targetW / targetH;
+      let drawW = targetW;
+      let drawH = targetH;
+      let offsetX = 0;
+      let offsetY = 0;
+      
+      if (intrinsicRatio > targetRatio) {
+        drawH = targetW / intrinsicRatio;
+        offsetY = (targetH - drawH) / 2;
+      } else {
+        drawW = targetH * intrinsicRatio;
+        offsetX = (targetW - drawW) / 2;
+      }
+
+      doc.addImage(reportData.clientSignature, 'PNG', margin + 10 + offsetX, currentY + 7 + offsetY, drawW, drawH);
     } catch (e) {
-      console.error("Signature generation error", e);
       doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.setFont('helvetica', 'italic');
-      doc.text("Erreur signature", 55, currentY + 20, { align: 'center' });
+      doc.setTextColor(150);
+      doc.text("Erreur signature", margin + 30, currentY + 20, { align: 'center' });
     }
   } else {
     doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
+    doc.setTextColor(150);
     doc.setFont('helvetica', 'italic');
-    doc.text('Aucune signature', 55, currentY + 20, { align: 'center' });
+    doc.text('Aucune signature numérique', margin + 40, currentY + 22, { align: 'center' });
   }
 
-  // Add Name, Role, Date inside the box aligned to the right
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(30, 30, 30);
-  doc.text(reportData.clientRepresentative?.toUpperCase() || '', 190, currentY + 15, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setTextColor(30, 41, 59);
+  doc.text(reportData.clientRepresentative?.toUpperCase() || 'CLIENT', pageWidth - margin - 10, currentY + 16, { align: 'right' });
   
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
-  doc.text(reportData.representativeRole || '', 190, currentY + 22, { align: 'right' });
-  doc.text(`Date: ${new Date(reportData.date).toLocaleDateString('fr-FR')}`, 190, currentY + 29, { align: 'right' });
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(reportData.representativeRole || 'Fonction non précisée', pageWidth - margin - 10, currentY + 24, { align: 'right' });
+  doc.text(`Signé le : ${new Date(reportData.date).toLocaleDateString('fr-FR')}`, pageWidth - margin - 10, currentY + 32, { align: 'right' });
 
   // Footer
   const footerY = pageHeight - 15;
-  doc.setDrawColor(200);
-  doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+  doc.setDrawColor(220, 220, 220);
+  doc.line(margin, footerY - 6, pageWidth - margin, footerY - 6);
   doc.setFontSize(8);
-  doc.setTextColor(100);
+  doc.setTextColor(100, 116, 139);
   doc.text("REGO Maintenance & Sécurité", pageWidth / 2, footerY, { align: 'center' });
   doc.text(`Document généré le ${new Date().toLocaleDateString('fr-FR')} - Ce document a valeur contractuelle`, pageWidth / 2, footerY + 4, { align: 'center' });
 

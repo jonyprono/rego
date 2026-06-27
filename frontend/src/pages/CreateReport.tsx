@@ -30,8 +30,8 @@ type FormData = {
 };
 
 const Section = ({ title, children, step }: { title: string, children: React.ReactNode, step: number }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-    <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center space-x-3">
+  <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-gray-100 overflow-hidden mb-8">
+    <div className="bg-gray-50/80 backdrop-blur-sm px-6 py-4 border-b border-gray-100/80 flex items-center space-x-3">
       <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-bold text-sm">
         {step}
       </span>
@@ -244,14 +244,14 @@ export default function CreateReport() {
         <form onSubmit={handleSubmit(onSubmit)}>
         {/* Section 1: Informations Générales */}
         <Section title="Informations Générales" step={1}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date d'intervention *</label>
-              <input type="date" {...register('date', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
+              <input type="date" {...register('date', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Type d'intervention *</label>
-              <select {...register('interventionType', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+              <select {...register('interventionType', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200">
                 <option value="">Sélectionner...</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="Installation">Installation</option>
@@ -262,24 +262,24 @@ export default function CreateReport() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Heure de début *</label>
-              <input type="time" {...register('startTime', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
+              <input type="time" {...register('startTime', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Heure de fin *</label>
-              <input type="time" {...register('endTime', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
+              <input type="time" {...register('endTime', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
             </div>
-            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 bg-gray-50 p-4 rounded-lg">
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Durée (calculée)</label>
                 <div className="p-3 bg-white border border-gray-200 rounded-lg text-gray-600 font-medium">{calculateDuration()} h</div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
-                <input type="number" step="0.01" {...register('price')} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
+                <input type="number" step="0.01" {...register('price')} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Trimestre</label>
-                <select {...register('quarter')} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <select {...register('quarter')} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200">
                   <option value="">Optionnel...</option>
                   <option value="T1">T1</option>
                   <option value="T2">T2</option>
@@ -293,22 +293,22 @@ export default function CreateReport() {
 
         {/* Section 2: Entreprise Cliente */}
         <Section title="Entreprise Cliente" step={2}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom du client *</label>
-              <input type="text" {...register('clientName', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Ex: Société Générale" />
+              <input type="text" {...register('clientName', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="Ex: Société Générale" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'agence</label>
-              <input type="text" {...register('agencyName')} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Ex: Agence Paris Centre" />
+              <input type="text" {...register('agencyName')} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="Ex: Agence Paris Centre" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète *</label>
-              <input type="text" {...register('clientAddress', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="123 rue de la République..." />
+              <input type="text" {...register('clientAddress', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="123 rue de la République..." />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Département *</label>
-              <input type="text" {...register('clientDepartment', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Ex: 75 - Paris" />
+              <input type="text" {...register('clientDepartment', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="Ex: 75 - Paris" />
             </div>
           </div>
         </Section>
@@ -317,7 +317,7 @@ export default function CreateReport() {
         <Section title="Équipe Technique" step={3}>
           <div className="space-y-4">
             {fields.map((item, index) => (
-              <div key={item.id} className="flex flex-col sm:flex-row sm:items-end gap-3 sm:space-x-4 bg-gray-50 p-4 rounded-lg">
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-end gap-3 sm:space-x-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50">
                 <div className="flex-1 w-full">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
                   <input type="text" {...register(`technicians.${index}.fullName` as const, { required: true })} className="w-full p-3 border border-gray-300 rounded-lg" placeholder="Jean Dupont" />
@@ -345,7 +345,7 @@ export default function CreateReport() {
         </Section>
 
         <Section title="Problématiques Rencontrées" step={6}>
-          <textarea {...register('problemsEncountered')} rows={4} className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Ex: Aucun problème rencontré ou Défaillance du matériel constatée..."></textarea>
+          <textarea {...register('problemsEncountered')} rows={4} className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="Ex: Aucun problème rencontré ou Défaillance du matériel constatée..."></textarea>
         </Section>
 
         <Section title="Situation Après Intervention" step={7}>
@@ -353,23 +353,23 @@ export default function CreateReport() {
         </Section>
 
         <Section title="Solution Apportée" step={8}>
-          <textarea {...register('solutionProvided')} rows={5} className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Ex: Remplacement de la télévision et démobilisation de l'ancienne TV..."></textarea>
+          <textarea {...register('solutionProvided')} rows={5} className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="Ex: Remplacement de la télévision et démobilisation de l'ancienne TV..."></textarea>
         </Section>
 
         <Section title="Remarques et Observations" step={9}>
-          <textarea {...register('remarks')} rows={3} className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Ex: RAS ou prévoir maintenance dans 6 mois..."></textarea>
+          <textarea {...register('remarks')} rows={3} className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" placeholder="Ex: RAS ou prévoir maintenance dans 6 mois..."></textarea>
         </Section>
 
         {/* Section 10: Validation Client */}
         <Section title="Validation Client" step={10}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom du représentant client *</label>
-              <input type="text" {...register('clientRepresentative', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
+              <input type="text" {...register('clientRepresentative', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Fonction *</label>
-              <input type="text" {...register('representativeRole', { required: true })} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
+              <input type="text" {...register('representativeRole', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
             </div>
           </div>
           
