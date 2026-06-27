@@ -377,7 +377,7 @@ export default function CreateReport() {
         </Section>
 
         {/* Submit */}
-        <div className="mt-8 sm:mt-0 sm:fixed sm:bottom-0 left-0 right-0 w-full bg-white py-4 sm:py-4 px-4 md:px-12 lg:px-24 xl:px-48 sm:shadow-[0_-8px_20px_rgba(0,0,0,0.06)] border border-gray-200 sm:border-t rounded-2xl sm:rounded-none z-40 flex justify-between sm:justify-end items-center sm:space-x-4">
+        <div className="fixed bottom-[68px] md:bottom-0 left-0 right-0 w-full bg-white py-3 sm:py-4 px-4 md:px-12 lg:px-24 xl:px-48 shadow-[0_-8px_20px_rgba(0,0,0,0.06)] border-t border-gray-200 z-40 flex justify-between sm:justify-end items-center sm:space-x-4">
           <button type="button" onClick={() => navigate('/')} className="px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm sm:text-base hidden sm:block">
             Annuler
           </button>
