@@ -7,7 +7,9 @@ import {
   SmartPhone01Icon, 
   AddTeamIcon, 
   ArrowRight01Icon,
-  CheckmarkCircle02Icon
+  CheckmarkCircle02Icon,
+  Building04Icon,
+  Alert01Icon
 } from 'hugeicons-react';
 import axios from 'axios';
 
