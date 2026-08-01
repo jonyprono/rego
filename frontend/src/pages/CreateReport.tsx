@@ -268,25 +268,14 @@ export default function CreateReport() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Heure de fin *</label>
               <input type="time" {...register('endTime', { required: true })} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
             </div>
-            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Durée (calculée)</label>
-                <div className="p-3 bg-white border border-gray-200 rounded-lg text-gray-600 font-medium">{calculateDuration()} h</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
-                <input type="number" step="0.01" {...register('price')} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Trimestre</label>
-                <select {...register('quarter')} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200">
-                  <option value="">Optionnel...</option>
-                  <option value="T1">T1</option>
-                  <option value="T2">T2</option>
-                  <option value="T3">T3</option>
-                  <option value="T4">T4</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Trimestre</label>
+              <select {...register('quarter')} className="w-full p-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white focus:border-primary-500 transition-all duration-200">
+                <option value="">Optionnel...</option>
+                <option value="Trimestre 1">Trimestre 1</option>
+                <option value="Trimestre 2">Trimestre 2</option>
+                <option value="Trimestre 3">Trimestre 3</option>
+              </select>
             </div>
           </div>
         </Section>

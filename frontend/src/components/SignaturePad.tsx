@@ -16,6 +16,13 @@ export default function SignaturePad({ onSave, label = "Signature du client" }: 
     onSave(null);
   };
 
+  const handleBegin = () => {
+    // Dismiss mobile keyboard when user starts signing
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
   const handleEnd = () => {
     setIsEmpty(false);
     if (sigCanvas.current) {
@@ -38,6 +45,7 @@ export default function SignaturePad({ onSave, label = "Signature du client" }: 
           canvasProps={{
             className: 'signature-canvas w-full h-48 cursor-crosshair bg-white rounded-lg'
           }}
+          onBegin={handleBegin}
           onEnd={handleEnd}
         />
         {isEmpty && (

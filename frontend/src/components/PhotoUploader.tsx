@@ -66,8 +66,11 @@ export default function PhotoUploader({ onPhotosChange, maxPhotos = 5 }: PhotoUp
               <img src={url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
               <button
                 type="button"
-                onClick={() => removePhoto(index)}
-                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.preventDefault();
+                  removePhoto(index);
+                }}
+                className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-md opacity-100 hover:bg-red-600 transition-colors"
               >
                 <X size={16} />
               </button>
