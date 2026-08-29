@@ -43,7 +43,10 @@ export default function Login() {
         // Pas de réponse = serveur injoignable
         setError(`Serveur injoignable. Vérifie que le backend est démarré et que VITE_API_URL est correcte (actuelle: ${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'})`);
       } else if (status === 500) {
-        setError(serverMsg || 'Erreur serveur (500) - Vérifie les logs Render');
+        const fullMessage = debugInfo?.error 
+          ? `${serverMsg || 'Erreur 500'} (Détails: ${debugInfo.error})` 
+          : (serverMsg || 'Erreur serveur (500) - Vérifie les logs Render');
+        setError(fullMessage);
       } else {
         setError(serverMsg || `Erreur ${status || ''}`);
       }

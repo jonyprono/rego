@@ -104,12 +104,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     res.status(500).json({
-      message: process.env.NODE_ENV === 'production' ? 'Server error during login' : debugMessage,
-      debug: process.env.NODE_ENV !== 'production' ? {
+      message: debugMessage, // Send the actual debug message to the frontend
+      debug: {               // Always send debug info so the user can see what's wrong
         error: error?.message,
         code: error?.code,
         dbConnected: !!process.env.DATABASE_URL
-      } : undefined
+      }
     });
   }
 };
