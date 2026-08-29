@@ -28,7 +28,25 @@ export default function Login() {
       login(response.data.user, response.data.token);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Identifiants incorrects');
+      // Debug : afficher l'erreur complète dans la console
+      console.error('=== LOGIN FRONTEND ERROR ===');
+      console.error('Status:', err.response?.status);
+      console.error('Data:', err.response?.data);
+      console.error('Message:', err.message);
+      console.error('===========================');
+
+      const serverMsg = err.response?.data?.message;
+      const debugInfo = err.response?.data?.debug;
+      const status = err.response?.status;
+
+      if (!err.response) {
+        // Pas de réponse = serveur injoignable
+        setError(`Serveur injoignable. Vérifie que le backend est démarré et que VITE_API_URL est correcte (actuelle: ${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'})`);
+      } else if (status === 500) {
+        setError(serverMsg || 'Erreur serveur (500) - Vérifie les logs Render');
+      } else {
+        setError(serverMsg || `Erreur ${status || ''}`);
+      }
     } finally {
       setIsLoading(false);
     }

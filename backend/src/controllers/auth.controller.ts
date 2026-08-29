@@ -32,9 +32,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+  } catch (error: any) {
+    console.error('===== REGISTER ERROR =====');
+    console.error('Type:', error?.constructor?.name);
+    console.error('Message:', error?.message);
+    console.error('Code:', error?.code);
+    console.error('==========================');
+    res.status(500).json({ message: 'Server error during registration', debug: error?.message });
   }
 };
 
@@ -73,8 +77,39 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         role: user.role,
       },
     });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+  } catch (error: any) {
+    // ===== DEBUG DÉTAILLÉ =====
+    console.error('===== LOGIN ERROR =====');
+    console.error('Type:', error?.constructor?.name);
+    console.error('Message:', error?.message);
+    console.error('Code:', error?.code);
+    console.error('Meta:', JSON.stringify(error?.meta));
+    console.error('Stack:', error?.stack);
+    console.error('DATABASE_URL définie:', !!process.env.DATABASE_URL);
+    console.error('JWT_SECRET définie:', !!process.env.JWT_SECRET);
+    console.error('=======================');
+
+    // Identifier la cause spécifique
+    let debugMessage = 'Server error during login';
+    if (!process.env.DATABASE_URL) {
+      debugMessage = '[DEBUG] DATABASE_URL manquante sur le serveur';
+    } else if (error?.code === 'P1001' || error?.message?.includes('connect')) {
+      debugMessage = '[DEBUG] Impossible de se connecter à la base de données';
+    } else if (error?.code === 'P1002') {
+      debugMessage = '[DEBUG] Timeout de connexion à la base de données';
+    } else if (error?.code === 'P2021') {
+      debugMessage = '[DEBUG] Table introuvable - migrations manquantes ?';
+    } else if (error?.message?.includes('SSL')) {
+      debugMessage = '[DEBUG] Erreur SSL avec la base de données';
+    }
+
+    res.status(500).json({
+      message: process.env.NODE_ENV === 'production' ? 'Server error during login' : debugMessage,
+      debug: process.env.NODE_ENV !== 'production' ? {
+        error: error?.message,
+        code: error?.code,
+        dbConnected: !!process.env.DATABASE_URL
+      } : undefined
+    });
   }
 };
