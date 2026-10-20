@@ -275,6 +275,7 @@ export default function CreateReport() {
                 <option value="Trimestre 1">Trimestre 1</option>
                 <option value="Trimestre 2">Trimestre 2</option>
                 <option value="Trimestre 3">Trimestre 3</option>
+                <option value="Trimestre 4">Trimestre 4</option>
               </select>
             </div>
           </div>
