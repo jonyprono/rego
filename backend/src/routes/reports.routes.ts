@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { createReport, getReports, getReportById, updateReport, deleteReport } from '../controllers/reports.controller';
+import { createReport, getReports, getReportById, updateReport, deleteReport, signReportByItManager } from '../controllers/reports.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -31,6 +31,7 @@ router.get('/', getReports);
 router.get('/:id', getReportById);
 router.put('/:id', updateReport);
 router.delete('/:id', deleteReport);
+router.post('/:id/sign-it-manager', signReportByItManager);
 
 // Endpoint to handle photo uploads separately if needed
 router.post('/:id/photos', upload.array('photos', 10), async (req, res) => {

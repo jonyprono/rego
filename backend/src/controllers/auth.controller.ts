@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { firstName, lastName, email, phone, password } = req.body;
+    const { firstName, lastName, email, phone, password, role, department } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -28,6 +28,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email,
         phone,
         password: hashedPassword,
+        role: role || 'TECHNICIAN',
+        department: department || null,
       },
     });
 
@@ -60,9 +62,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Generate token
+    // Generate token with role and department
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, department: user.department },
       JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -75,6 +77,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        department: user.department,
       },
     });
   } catch (error: any) {

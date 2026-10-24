@@ -33,9 +33,12 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
   try {
     const {
       date, interventionType, startTime, endTime, duration, price, quarter,
-      clientName, agencyName, clientAddress, clientDepartment,
+      clientName, agencyName, clientAddress, clientDepartment, clientCommune,
       problemsEncountered, situationBefore, solutionProvided, situationAfter, remarks,
       clientRepresentative, representativeRole, clientSignature, presencePhotos,
+      technicianName, technicianSignature,
+      itManagerName, itManagerDepartment, itManagerSignature,
+      status,
       technicians // Array of { fullName, techId }
     } = req.body;
     
@@ -51,7 +54,11 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
     const processedSituationBefore = await processPhotoArray(situationBefore);
     const processedSituationAfter = await processPhotoArray(situationAfter);
     const processedPresencePhotos = await processPhotoArray(presencePhotos);
-    const processedSignature = await processSignature(clientSignature);
+    const processedClientSignature = await processSignature(clientSignature);
+    const processedTechnicianSignature = await processSignature(technicianSignature);
+    const processedItManagerSignature = await processSignature(itManagerSignature);
+
+    const calculatedStatus = processedItManagerSignature ? 'VALIDE' : (status || 'EN_ATTENTE_SIGNATURE');
 
     const newReport = await prisma.report.create({
       data: {
@@ -67,15 +74,24 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
         agencyName,
         clientAddress,
         clientDepartment,
+        clientCommune: clientCommune || null,
         problemsEncountered,
         situationBefore: processedSituationBefore,
         solutionProvided,
         situationAfter: processedSituationAfter,
         remarks,
+        status: calculatedStatus,
+        technicianName: technicianName || null,
+        technicianSignature: processedTechnicianSignature || null,
+        technicianSignedAt: processedTechnicianSignature ? new Date() : null,
+        itManagerName: itManagerName || null,
+        itManagerDepartment: itManagerDepartment || clientDepartment,
+        itManagerSignature: processedItManagerSignature || null,
+        itManagerSignedAt: processedItManagerSignature ? new Date() : null,
         clientRepresentative,
         representativeRole,
-        validationDate: processedSignature ? new Date() : null,
-        clientSignature: processedSignature,
+        validationDate: processedClientSignature ? new Date() : null,
+        clientSignature: processedClientSignature,
         presencePhotos: processedPresencePhotos,
         userId,
         technicians: {
@@ -104,9 +120,22 @@ export const getReports = async (req: Request, res: Response): Promise<void> => 
     const userId = req.user?.id;
     // @ts-ignore
     const role = req.user?.role;
+    // @ts-ignore
+    const department = req.user?.department;
 
-    // If admin, can see all reports. If technician, only theirs.
-    const query = role === 'ADMIN' ? {} : { userId };
+    let query: any = {};
+    if (role === 'RESPONSABLE_INFO') {
+      if (department) {
+        query = {
+          clientDepartment: {
+            equals: department,
+            mode: 'insensitive'
+          }
+        };
+      }
+    } else if (role !== 'ADMIN') {
+      query = { userId };
+    }
 
     const reports = await prisma.report.findMany({
       where: query,
@@ -131,6 +160,8 @@ export const getReportById = async (req: Request, res: Response): Promise<void> 
     const userId = req.user?.id;
     // @ts-ignore
     const role = req.user?.role;
+    // @ts-ignore
+    const department = req.user?.department;
 
     const report = await prisma.report.findUnique({
       where: { id: Number(id) },
@@ -146,7 +177,12 @@ export const getReportById = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    if (role !== 'ADMIN' && report.userId !== userId) {
+    const isAuthorized = 
+      role === 'ADMIN' ||
+      report.userId === userId ||
+      (role === 'RESPONSABLE_INFO' && (!department || report.clientDepartment.toLowerCase() === department.toLowerCase()));
+
+    if (!isAuthorized) {
       res.status(403).json({ message: 'Access denied' });
       return;
     }
@@ -165,6 +201,8 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
     const userId = req.user?.id;
     // @ts-ignore
     const role = req.user?.role;
+    // @ts-ignore
+    const department = req.user?.department;
 
     const existingReport = await prisma.report.findUnique({
       where: { id: Number(id) },
@@ -176,57 +214,82 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    if (role !== 'ADMIN' && existingReport.userId !== userId) {
+    const isAuthorized = 
+      role === 'ADMIN' || 
+      existingReport.userId === userId ||
+      (role === 'RESPONSABLE_INFO' && (!department || existingReport.clientDepartment.toLowerCase() === department.toLowerCase()));
+
+    if (!isAuthorized) {
       res.status(403).json({ message: 'Access denied' });
       return;
     }
 
     const {
       date, interventionType, startTime, endTime, duration, price, quarter,
-      clientName, agencyName, clientAddress, clientDepartment,
+      clientName, agencyName, clientAddress, clientDepartment, clientCommune,
       problemsEncountered, situationBefore, solutionProvided, situationAfter, remarks,
       clientRepresentative, representativeRole, clientSignature, presencePhotos,
+      technicianName, technicianSignature,
+      itManagerName, itManagerDepartment, itManagerSignature,
+      status,
       technicians
     } = req.body;
 
-    // Delete existing technicians to replace them
-    await prisma.technician.deleteMany({
-      where: { reportId: Number(id) }
-    });
+    // Delete existing technicians to replace them if provided
+    if (technicians) {
+      await prisma.technician.deleteMany({
+        where: { reportId: Number(id) }
+      });
+    }
 
     // Upload new photos to Cloudinary if they are base64 strings
     const processedSituationBefore = situationBefore !== undefined ? await processPhotoArray(situationBefore) : existingReport.situationBefore;
     const processedSituationAfter = situationAfter !== undefined ? await processPhotoArray(situationAfter) : existingReport.situationAfter;
     const processedPresencePhotos = presencePhotos !== undefined ? await processPhotoArray(presencePhotos) : existingReport.presencePhotos;
-    const processedSignature = clientSignature !== undefined ? await processSignature(clientSignature) : existingReport.clientSignature;
+    const processedClientSignature = clientSignature !== undefined ? await processSignature(clientSignature) : existingReport.clientSignature;
+    const processedTechnicianSignature = technicianSignature !== undefined ? await processSignature(technicianSignature) : existingReport.technicianSignature;
+    const processedItManagerSignature = itManagerSignature !== undefined ? await processSignature(itManagerSignature) : existingReport.itManagerSignature;
+
+    const calculatedStatus = processedItManagerSignature ? 'VALIDE' : (status || existingReport.status || 'EN_ATTENTE_SIGNATURE');
 
     const updatedReport = await prisma.report.update({
       where: { id: Number(id) },
       data: {
-        date: new Date(date),
-        interventionType,
-        startTime,
-        endTime,
-        duration: parseFloat(duration),
-        price: price ? parseFloat(price) : null,
-        quarter,
-        clientName,
-        agencyName,
-        clientAddress,
-        clientDepartment,
-        problemsEncountered,
+        date: date ? new Date(date) : existingReport.date,
+        interventionType: interventionType || existingReport.interventionType,
+        startTime: startTime || existingReport.startTime,
+        endTime: endTime || existingReport.endTime,
+        duration: duration ? parseFloat(duration) : existingReport.duration,
+        price: price !== undefined ? (price ? parseFloat(price) : null) : existingReport.price,
+        quarter: quarter !== undefined ? quarter : existingReport.quarter,
+        clientName: clientName || existingReport.clientName,
+        agencyName: agencyName !== undefined ? agencyName : existingReport.agencyName,
+        clientAddress: clientAddress || existingReport.clientAddress,
+        clientDepartment: clientDepartment || existingReport.clientDepartment,
+        clientCommune: clientCommune !== undefined ? clientCommune : existingReport.clientCommune,
+        problemsEncountered: problemsEncountered !== undefined ? problemsEncountered : existingReport.problemsEncountered,
         situationBefore: processedSituationBefore,
-        solutionProvided,
+        solutionProvided: solutionProvided !== undefined ? solutionProvided : existingReport.solutionProvided,
         situationAfter: processedSituationAfter,
-        remarks,
-        clientRepresentative,
-        representativeRole,
-        validationDate: processedSignature ? new Date() : existingReport.validationDate,
-        clientSignature: processedSignature,
+        remarks: remarks !== undefined ? remarks : existingReport.remarks,
+        status: calculatedStatus,
+        technicianName: technicianName !== undefined ? technicianName : existingReport.technicianName,
+        technicianSignature: processedTechnicianSignature,
+        technicianSignedAt: processedTechnicianSignature && !existingReport.technicianSignature ? new Date() : existingReport.technicianSignedAt,
+        itManagerName: itManagerName !== undefined ? itManagerName : existingReport.itManagerName,
+        itManagerDepartment: itManagerDepartment !== undefined ? itManagerDepartment : existingReport.itManagerDepartment,
+        itManagerSignature: processedItManagerSignature,
+        itManagerSignedAt: processedItManagerSignature && !existingReport.itManagerSignature ? new Date() : existingReport.itManagerSignedAt,
+        clientRepresentative: clientRepresentative !== undefined ? clientRepresentative : existingReport.clientRepresentative,
+        representativeRole: representativeRole !== undefined ? representativeRole : existingReport.representativeRole,
+        validationDate: processedClientSignature ? new Date() : existingReport.validationDate,
+        clientSignature: processedClientSignature,
         presencePhotos: processedPresencePhotos,
-        technicians: {
-          create: technicians || []
-        }
+        ...(technicians ? {
+          technicians: {
+            create: technicians
+          }
+        } : {})
       },
       include: {
         technicians: true
@@ -236,6 +299,60 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
     res.json(updatedReport);
   } catch (error: any) {
     console.error('Error updating report:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const signReportByItManager = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    // @ts-ignore
+    const role = req.user?.role;
+    // @ts-ignore
+    const department = req.user?.department;
+    // @ts-ignore
+    const userFirstName = req.user?.firstName || '';
+    // @ts-ignore
+    const userLastName = req.user?.lastName || '';
+    
+    const { itManagerName, itManagerSignature, itManagerDepartment } = req.body;
+
+    const existingReport = await prisma.report.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!existingReport) {
+      res.status(404).json({ message: 'Rapport introuvable' });
+      return;
+    }
+
+    if (role === 'RESPONSABLE_INFO' && department && existingReport.clientDepartment.toLowerCase() !== department.toLowerCase()) {
+      res.status(403).json({ 
+        message: `Accès refusé : vous êtes assigné(e) au département ${department}, ce rapport concerne ${existingReport.clientDepartment}.` 
+      });
+      return;
+    }
+
+    const processedSignature = await processSignature(itManagerSignature);
+
+    const updated = await prisma.report.update({
+      where: { id: Number(id) },
+      data: {
+        itManagerName: itManagerName || `${userFirstName} ${userLastName}`.trim() || 'Responsable Informatique',
+        itManagerDepartment: itManagerDepartment || department || existingReport.clientDepartment,
+        itManagerSignature: processedSignature,
+        itManagerSignedAt: new Date(),
+        status: 'VALIDE'
+      },
+      include: {
+        technicians: true,
+        user: { select: { firstName: true, lastName: true } }
+      }
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    console.error('Erreur signature Responsable Informatique:', error);
     res.status(500).json({ message: error.message });
   }
 };

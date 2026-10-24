@@ -13,6 +13,8 @@ import {
 } from 'hugeicons-react';
 import axios from 'axios';
 
+import { BENIN_DEPARTMENTS } from '../constants/locations';
+
 export default function Register() {
   const navigate = useNavigate();
   
@@ -22,15 +24,13 @@ export default function Register() {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'TECHNICIAN',
+    department: 'Littoral'
   });
   
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +38,11 @@ export default function Register() {
     
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    if (formData.role === 'RESPONSABLE_INFO' && !formData.department) {
+      setError('Veuillez sélectionner un département pour le Responsable Informatique.');
       return;
     }
     
@@ -50,7 +55,9 @@ export default function Register() {
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        password: formData.password
+        password: formData.password,
+        role: formData.role,
+        department: formData.role === 'RESPONSABLE_INFO' ? formData.department : null
       });
       
       navigate('/login');
@@ -126,6 +133,41 @@ export default function Register() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Rôle & Département */}
+              <div className="space-y-4 sm:space-y-5">
+                <h3 className="text-base sm:text-lg font-bold text-secondary-900 border-b border-gray-100/50 pb-2">Rôle & Département</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-secondary-800">Votre Fonction *</label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData({...formData, role: e.target.value})}
+                      className="block w-full px-4 py-3 sm:py-3.5 bg-white/60 backdrop-blur-md border border-white focus:bg-white focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm font-medium rounded-xl shadow-inner text-secondary-900"
+                    >
+                      <option value="TECHNICIAN">Technicien REGO</option>
+                      <option value="RESPONSABLE_INFO">Responsable Informatique</option>
+                    </select>
+                  </div>
+
+                  {formData.role === 'RESPONSABLE_INFO' && (
+                    <div className="space-y-1.5 animate-in fade-in">
+                      <label className="block text-sm font-semibold text-secondary-800">Département assigné *</label>
+                      <select
+                        value={formData.department}
+                        onChange={(e) => setFormData({...formData, department: e.target.value})}
+                        className="block w-full px-4 py-3 sm:py-3.5 bg-white/60 backdrop-blur-md border border-white focus:bg-white focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm font-medium rounded-xl shadow-inner text-secondary-900"
+                      >
+                        {BENIN_DEPARTMENTS.map((dept) => (
+                          <option key={dept.name} value={dept.name}>
+                            {dept.name} ({dept.communes.length} communes)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -38,8 +38,8 @@ export default function Dashboard() {
         setStats({
           total: reports.length,
           thisMonth: reports.filter((r: any) => new Date(r.date).getMonth() === currentMonth).length,
-          validated: reports.filter((r: any) => r.clientSignature).length,
-          pending: reports.filter((r: any) => !r.clientSignature).length,
+          validated: reports.filter((r: any) => r.status === 'VALIDE' || Boolean(r.itManagerSignature)).length,
+          pending: reports.filter((r: any) => r.status !== 'VALIDE' && !r.itManagerSignature).length,
         });
       } catch (err) {
         // Fallback to 0 if error
@@ -58,16 +58,29 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-secondary-900 tracking-tight">Tableau de bord</h1>
           <p className="text-secondary-500 mt-1 sm:mt-2 font-medium text-sm sm:text-base">
-            Bonjour <span className="text-secondary-900 font-semibold">{user?.firstName || 'Technicien'}</span>, voici un résumé de votre activité.
+            Bonjour <span className="text-secondary-900 font-semibold">{user?.firstName || 'Utilisateur'}</span>
+            {user?.role === 'RESPONSABLE_INFO' && (
+              <span className="text-blue-700 font-semibold"> (Resp. Info • Département {user.department})</span>
+            )}, voici un résumé de vos rapports d'intervention.
           </p>
         </div>
-        <Link 
-          to="/reports/new" 
-          className="group flex items-center justify-center bg-primary-700 hover:bg-primary-800 text-white px-5 py-3 sm:px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(198,40,40,0.4)] font-display font-semibold transition-all active:scale-95 text-sm sm:text-base"
-        >
-          <AddSquareIcon size={20} className="mr-2" />
-          Nouveau Rapport
-        </Link>
+        {user?.role !== 'RESPONSABLE_INFO' ? (
+          <Link 
+            to="/reports/new" 
+            className="group flex items-center justify-center bg-primary-700 hover:bg-primary-800 text-white px-5 py-3 sm:px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(198,40,40,0.4)] font-display font-semibold transition-all active:scale-95 text-sm sm:text-base"
+          >
+            <AddSquareIcon size={20} className="mr-2" />
+            Nouveau Rapport
+          </Link>
+        ) : (
+          <Link 
+            to="/reports" 
+            className="group flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 sm:px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(37,99,235,0.4)] font-display font-semibold transition-all active:scale-95 text-sm sm:text-base"
+          >
+            <DocumentValidationIcon size={20} className="mr-2" />
+            Rapports à viser
+          </Link>
+        )}
       </div>
 
       {/* Stats Grid */}

@@ -9,16 +9,17 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String   @unique
-  phone     String?
-  password  String
-  role      String   @default("TECHNICIAN")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  reports   Report[]
+  id         Int      @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String?
+  password   String
+  role       String   @default("TECHNICIAN")
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  reports    Report[]
 }
 
 model Report {
@@ -37,6 +38,7 @@ model Report {
   agencyName          String
   clientAddress       String
   clientDepartment    String
+  clientCommune       String?
   
   // Observations
   problemsEncountered String?
@@ -45,7 +47,21 @@ model Report {
   situationAfter      String?
   remarks             String?
 
-  // Validation
+  // Status: "EN_ATTENTE_SIGNATURE", "VALIDE", "BROUILLON"
+  status              String       @default("EN_ATTENTE_SIGNATURE")
+
+  // 1. Signature Technicien REGO
+  technicianName      String?
+  technicianSignature String?      // Cloudinary URL or base64
+  technicianSignedAt  DateTime?
+
+  // 2. Signature Responsable Informatique (selon département)
+  itManagerName       String?
+  itManagerDepartment String?
+  itManagerSignature  String?      // Cloudinary URL or base64
+  itManagerSignedAt   DateTime?
+
+  // 3. Validation Client
   clientRepresentative String?
   representativeRole   String?
   validationDate       DateTime?

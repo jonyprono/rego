@@ -24,6 +24,23 @@ export default function Layout() {
         <div className="p-6 border-b border-gray-100 flex items-center justify-center">
           <img src="/logo rego.jpg" alt="Rego" className="h-12 object-contain" />
         </div>
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Connecté</p>
+          <p className="text-sm font-bold text-gray-900 truncate">{user?.firstName} {user?.lastName}</p>
+          <span className={`inline-block mt-1 px-2 py-0.5 text-[11px] font-bold rounded-md ${
+            user?.role === 'RESPONSABLE_INFO' 
+              ? 'bg-blue-100 text-blue-800' 
+              : user?.role === 'ADMIN'
+                ? 'bg-purple-100 text-purple-800'
+                : 'bg-primary-100 text-primary-800'
+          }`}>
+            {user?.role === 'RESPONSABLE_INFO' 
+              ? `Resp. Info • ${user?.department || 'Bénin'}` 
+              : user?.role === 'ADMIN'
+                ? 'Administrateur'
+                : 'Technicien REGO'}
+          </span>
+        </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <Link 
             to="/" 
@@ -32,19 +49,21 @@ export default function Layout() {
             <Home size={22} className={isActive('/') ? 'text-primary-600' : 'text-gray-400'} />
             <span>Tableau de bord</span>
           </Link>
-          <Link 
-            to="/reports/new" 
-            className={`flex items-center space-x-3 p-3 rounded-xl transition-all font-medium ${isActive('/reports/new') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-          >
-            <PlusCircle size={22} className={isActive('/reports/new') ? 'text-primary-600' : 'text-gray-400'} />
-            <span>Nouveau Rapport</span>
-          </Link>
+          {user?.role !== 'RESPONSABLE_INFO' && (
+            <Link 
+              to="/reports/new" 
+              className={`flex items-center space-x-3 p-3 rounded-xl transition-all font-medium ${isActive('/reports/new') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+            >
+              <PlusCircle size={22} className={isActive('/reports/new') ? 'text-primary-600' : 'text-gray-400'} />
+              <span>Nouveau Rapport</span>
+            </Link>
+          )}
           <Link 
             to="/reports" 
             className={`flex items-center space-x-3 p-3 rounded-xl transition-all font-medium ${isActive('/reports') && !isActive('/reports/new') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
           >
             <FileText size={22} className={isActive('/reports') && !isActive('/reports/new') ? 'text-primary-600' : 'text-gray-400'} />
-            <span>Mes Rapports</span>
+            <span>{user?.role === 'RESPONSABLE_INFO' ? 'Rapports à viser' : 'Mes Rapports'}</span>
           </Link>
         </nav>
         <div className="p-4 border-t border-gray-100">
@@ -81,15 +100,17 @@ export default function Layout() {
           </div>
           <span className="text-[10px] font-semibold">Accueil</span>
         </Link>
-        <Link 
-          to="/reports/new" 
-          className="flex flex-col items-center justify-center w-full py-2 space-y-1 relative -top-3"
-        >
-          <div className="bg-primary-600 text-white p-3.5 rounded-full shadow-lg shadow-primary-500/40 border-4 border-gray-50">
-            <PlusCircle size={26} strokeWidth={2.5} />
-          </div>
-          <span className="text-[10px] font-semibold text-gray-700 mt-1">Nouveau</span>
-        </Link>
+        {user?.role !== 'RESPONSABLE_INFO' && (
+          <Link 
+            to="/reports/new" 
+            className="flex flex-col items-center justify-center w-full py-2 space-y-1 relative -top-3"
+          >
+            <div className="bg-primary-600 text-white p-3.5 rounded-full shadow-lg shadow-primary-500/40 border-4 border-gray-50">
+              <PlusCircle size={26} strokeWidth={2.5} />
+            </div>
+            <span className="text-[10px] font-semibold text-gray-700 mt-1">Nouveau</span>
+          </Link>
+        )}
         <Link 
           to="/reports" 
           className={`flex flex-col items-center justify-center w-full py-3 space-y-1 ${isActive('/reports') && !isActive('/reports/new') ? 'text-primary-700' : 'text-gray-500'}`}

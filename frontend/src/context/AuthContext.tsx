@@ -10,16 +10,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null); // For now, no persistence
+  const [user, setUser] = useState<any | null>(() => {
+    const savedUser = localStorage.getItem('user');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading] = useState(false);
 
   const login = (userData: any, token: string) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 

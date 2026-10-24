@@ -115,9 +115,10 @@ export const generateReportPDF = async (reportData: any) => {
   doc.text('Entreprise Client', margin, currentY);
   currentY += 5;
 
+  const deptCommune = reportData.clientDepartment + (reportData.clientCommune ? ` (${reportData.clientCommune})` : '');
   const clientData = [
     ['Nom complet:', reportData.clientName, 'Agence:', reportData.agencyName || 'N/A'],
-    ['Adresse postale:', reportData.clientAddress, 'Département:', reportData.clientDepartment]
+    ['Adresse postale:', reportData.clientAddress, 'Département:', deptCommune]
   ];
 
   autoTable(doc, {
@@ -286,66 +287,136 @@ export const generateReportPDF = async (reportData: any) => {
     addTextSection('Remarques', reportData.remarks, headerBgColor);
   }
 
-  // --- 7. SIGNATURE ---
-  checkPageBreak(65);
-  doc.setFontSize(14);
+  // --- 7. TROIS BLOCS DE VISAS & SIGNATURES ---
+  const boxHeight = 44;
+  checkPageBreak(boxHeight + 15);
+
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 38, 70);
-  doc.text('Validation Client', margin, currentY);
+  doc.text('Visas & Signatures', margin, currentY);
   currentY += 4;
 
-  doc.setDrawColor(220, 220, 220);
-  doc.setFillColor(248, 250, 252);
-  doc.roundedRect(margin, currentY, contentWidth, 25, 2, 2, 'FD');
+  const gap = 4;
+  const boxWidth = (contentWidth - (gap * 2)) / 3;
 
-  if (reportData.clientSignature) {
-    try {
-      const {w, h} = await new Promise<{w: number, h: number}>(resolve => {
-        const img = new Image();
-        img.onload = () => resolve({w: img.width, h: img.height});
-        img.onerror = () => resolve({w: 60, h: 25});
-        img.src = reportData.clientSignature;
-      });
-      
-      const targetW = 60;
-      const targetH = 25;
-      const intrinsicRatio = w / h;
-      const targetRatio = targetW / targetH;
-      let drawW = targetW;
-      let drawH = targetH;
-      let offsetX = 0;
-      let offsetY = 0;
-      
-      if (intrinsicRatio > targetRatio) {
-        drawH = targetW / intrinsicRatio;
-        offsetY = (targetH - drawH) / 2;
-      } else {
-        drawW = targetH * intrinsicRatio;
-        offsetX = (targetW - drawW) / 2;
+  const drawSignatureBox = async (
+    title: string,
+    signerName: string,
+    roleOrDept: string,
+    signatureUrl: string | undefined | null,
+    dateStr: string,
+    x: number,
+    y: number
+  ) => {
+    // Fond et bordure globale
+    doc.setDrawColor(215, 222, 230);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(x, y, boxWidth, boxHeight, 2, 2, 'FD');
+
+    // Bandeau d'en-tête du bloc
+    doc.setFillColor(235, 241, 248);
+    doc.roundedRect(x, y, boxWidth, 7, 2, 2, 'F');
+    doc.rect(x, y + 4, boxWidth, 3, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 38, 70);
+    doc.text(title, x + (boxWidth / 2), y + 4.8, { align: 'center' });
+
+    // Nom & Rôle / Département
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.2);
+    doc.setTextColor(30, 41, 59);
+    doc.text(doc.splitTextToSize(signerName, boxWidth - 6)[0] || '', x + 3, y + 11);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(doc.splitTextToSize(roleOrDept, boxWidth - 6)[0] || '', x + 3, y + 15);
+
+    // Espace de signature image
+    const sigY = y + 17;
+    const sigH = boxHeight - 23;
+    const sigW = boxWidth - 6;
+
+    if (signatureUrl) {
+      try {
+        const { w, h } = await new Promise<{ w: number; h: number }>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width, h: img.height });
+          img.onerror = () => resolve({ w: 60, h: 25 });
+          img.src = signatureUrl;
+        });
+
+        const intrinsicRatio = w / h;
+        let drawW = sigW;
+        let drawH = sigH;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (intrinsicRatio > sigW / sigH) {
+          drawH = sigW / intrinsicRatio;
+          offsetY = (sigH - drawH) / 2;
+        } else {
+          drawW = sigH * intrinsicRatio;
+          offsetX = (sigW - drawW) / 2;
+        }
+
+        doc.addImage(signatureUrl, 'PNG', x + 3 + offsetX, sigY + offsetY, drawW, drawH);
+      } catch (e) {
+        doc.setFontSize(7);
+        doc.setTextColor(180, 50, 50);
+        doc.text("Erreur signature", x + (boxWidth / 2), sigY + (sigH / 2), { align: 'center' });
       }
-
-      doc.addImage(reportData.clientSignature, 'PNG', margin + 10 + offsetX, currentY + 7 + offsetY, drawW, drawH);
-    } catch (e) {
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      doc.text("Erreur signature", margin + 30, currentY + 20, { align: 'center' });
+    } else {
+      doc.setFontSize(7.2);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(156, 163, 175);
+      doc.text("En attente de signature", x + (boxWidth / 2), sigY + (sigH / 2), { align: 'center' });
     }
-  } else {
-    doc.setFontSize(10);
-    doc.setTextColor(150);
-    doc.setFont('helvetica', 'italic');
-    doc.text('Aucune signature numérique', margin + 40, currentY + 15, { align: 'center' });
-  }
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(30, 41, 59);
-  doc.text(reportData.clientRepresentative?.toUpperCase() || 'CLIENT', pageWidth - margin - 10, currentY + 10, { align: 'right' });
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(100, 116, 139);
-  doc.text(reportData.representativeRole || 'Fonction non précisée', pageWidth - margin - 10, currentY + 16, { align: 'right' });
-  doc.text(`Signé le : ${new Date(reportData.date).toLocaleDateString('fr-FR')}`, pageWidth - margin - 10, currentY + 22, { align: 'right' });
+    // Date en bas
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.3);
+    doc.setTextColor(100, 116, 139);
+    doc.text(dateStr, x + 3, y + boxHeight - 2);
+  };
+
+  // 1. Technicien REGO
+  const techName = reportData.technicianName || reportData.technicians?.[0]?.fullName || 'Technicien REGO';
+  const techDate = reportData.technicianSignedAt 
+    ? `Signé le : ${new Date(reportData.technicianSignedAt).toLocaleDateString('fr-FR')}`
+    : `Date : ${new Date(reportData.date).toLocaleDateString('fr-FR')}`;
+  const techSig = reportData.technicianSignature || null;
+
+  // 2. Responsable Informatique
+  const itName = reportData.itManagerName || 'Responsable Informatique';
+  const itDept = reportData.itManagerDepartment 
+    ? `Dép. ${reportData.itManagerDepartment}`
+    : (reportData.clientDepartment ? `Dép. ${reportData.clientDepartment}` : 'Système d\'Information');
+  const itDate = reportData.itManagerSignedAt
+    ? `Signé le : ${new Date(reportData.itManagerSignedAt).toLocaleDateString('fr-FR')}`
+    : (reportData.itManagerSignature ? `Signé le : ${new Date(reportData.date).toLocaleDateString('fr-FR')}` : 'En attente de visa');
+  const itSig = reportData.itManagerSignature || null;
+
+  // 3. Client
+  const clientRepName = reportData.clientRepresentative || 'Représentant Client';
+  const clientRepRole = reportData.representativeRole || 'Client Bénéficiaire';
+  const clientDate = reportData.validationDate
+    ? `Signé le : ${new Date(reportData.validationDate).toLocaleDateString('fr-FR')}`
+    : (reportData.clientSignature ? `Signé le : ${new Date(reportData.date).toLocaleDateString('fr-FR')}` : 'En attente de signature');
+  const clientSig = reportData.clientSignature || null;
+
+  const col1X = margin;
+  const col2X = margin + boxWidth + gap;
+  const col3X = margin + (boxWidth * 2) + (gap * 2);
+
+  await drawSignatureBox("1. Technicien REGO", techName, "Intervenant certifié", techSig, techDate, col1X, currentY);
+  await drawSignatureBox("2. Resp. Informatique", itName, itDept, itSig, itDate, col2X, currentY);
+  await drawSignatureBox("3. Représentant Client", clientRepName, clientRepRole, clientSig, clientDate, col3X, currentY);
+
+  currentY += boxHeight + 8;
 
   // Footer
   const footerY = pageHeight - 15;
