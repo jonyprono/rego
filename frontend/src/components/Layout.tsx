@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { FileText, PlusCircle, User, LogOut, Home } from 'lucide-react';
 
 export default function Layout() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
