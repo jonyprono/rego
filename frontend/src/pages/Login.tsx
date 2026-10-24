@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail01Icon, LockPasswordIcon, Login03Icon, ArrowRight01Icon } from 'hugeicons-react';
+import { Mail01Icon, LockPasswordIcon, ArrowRight01Icon, Alert01Icon, CheckmarkCircle02Icon } from 'hugeicons-react';
+import { X } from 'lucide-react';
 import axios from 'axios';
 
 export default function Login() {
@@ -11,11 +12,22 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Forgot password modal state
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [isForgotLoading, setIsForgotLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
     setIsLoading(true);
     
     try {
@@ -28,30 +40,52 @@ export default function Login() {
       login(response.data.user, response.data.token);
       navigate('/');
     } catch (err: any) {
-      // Debug : afficher l'erreur complète dans la console
-      console.error('=== LOGIN FRONTEND ERROR ===');
-      console.error('Status:', err.response?.status);
-      console.error('Data:', err.response?.data);
-      console.error('Message:', err.message);
-      console.error('===========================');
-
+      console.error('=== LOGIN ERROR ===', err);
       const serverMsg = err.response?.data?.message;
-      const debugInfo = err.response?.data?.debug;
-      const status = err.response?.status;
-
       if (!err.response) {
-        // Pas de réponse = serveur injoignable
-        setError(`Serveur injoignable. Vérifie que le backend est démarré et que VITE_API_URL est correcte (actuelle: ${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'})`);
-      } else if (status === 500) {
-        const fullMessage = debugInfo?.error 
-          ? `${serverMsg || 'Erreur 500'} (Détails: ${debugInfo.error})` 
-          : (serverMsg || 'Erreur serveur (500) - Vérifie les logs Render');
-        setError(fullMessage);
+        setError(`Serveur injoignable. Vérifiez la connexion au serveur.`);
       } else {
-        setError(serverMsg || `Erreur ${status || ''}`);
+        // Message générique sécurisé pour empêcher les attaques par énumération
+        setError(serverMsg || "Nom d'utilisateur ou mot de passe incorrect.");
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+
+    if (newPassword !== confirmNewPassword) {
+      setForgotError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setForgotError('Le mot de passe doit comporter au moins 6 caractères.');
+      return;
+    }
+
+    setIsForgotLoading(true);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const response = await axios.post(`${API_URL}/auth/reset-password`, {
+        email: forgotEmail,
+        newPassword
+      });
+
+      setForgotSuccess(response.data.message || 'Votre mot de passe a bien été mis à jour.');
+      setEmail(forgotEmail);
+      setTimeout(() => {
+        setIsForgotModalOpen(false);
+        setSuccessMsg('Votre mot de passe a été modifié. Vous pouvez vous connecter.');
+      }, 2000);
+    } catch (err: any) {
+      setForgotError(err.response?.data?.message || 'Erreur lors de la réinitialisation du mot de passe.');
+    } finally {
+      setIsForgotLoading(false);
     }
   };
 
@@ -76,9 +110,16 @@ export default function Login() {
 
           <div className="px-6 sm:px-10 pb-8 sm:pb-10 relative z-10">
             {error && (
-              <div className="flex items-center bg-warning/10 text-warning p-4 rounded-xl mb-6 sm:mb-8 text-sm font-medium border border-warning/20">
-                <div className="mr-3 bg-warning/20 p-1 rounded-full flex-shrink-0"><LockPasswordIcon size={16} /></div>
+              <div className="flex items-center bg-red-50 text-red-700 p-4 rounded-xl mb-6 sm:mb-8 text-sm font-medium border border-red-200">
+                <div className="mr-3 bg-red-200/50 p-1 rounded-full flex-shrink-0 text-red-700"><Alert01Icon size={16} /></div>
                 <span>{error}</span>
+              </div>
+            )}
+
+            {successMsg && (
+              <div className="flex items-center bg-emerald-50 text-emerald-800 p-4 rounded-xl mb-6 sm:mb-8 text-sm font-medium border border-emerald-200">
+                <div className="mr-3 bg-emerald-200/50 p-1 rounded-full flex-shrink-0 text-emerald-700"><CheckmarkCircle02Icon size={16} /></div>
+                <span>{successMsg}</span>
               </div>
             )}
 
@@ -105,7 +146,20 @@ export default function Login() {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="block text-sm font-semibold text-secondary-800">Mot de passe</label>
-                  <a href="#" className="text-xs font-semibold text-primary-700 hover:text-primary-800">Oublié ?</a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotError('');
+                      setForgotSuccess('');
+                      setNewPassword('');
+                      setConfirmNewPassword('');
+                      setIsForgotModalOpen(true);
+                    }}
+                    className="text-xs font-semibold text-primary-700 hover:text-primary-800 transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </button>
                 </div>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-secondary-500 group-focus-within:text-primary-700 transition-colors">
@@ -144,6 +198,98 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* MODALE DE RÉINITIALISATION DE MOT DE PASSE OUBLIÉ */}
+      {/* ======================================================== */}
+      {isForgotModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-gray-100 relative">
+            <div className="flex justify-between items-center pb-4 border-b border-gray-100 mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Mot de passe oublié</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Définissez un nouveau mot de passe pour votre compte.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsForgotModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {forgotError && (
+              <div className="flex items-center bg-red-50 text-red-700 p-3 rounded-xl mb-4 text-xs font-medium border border-red-200">
+                <Alert01Icon size={16} className="mr-2 flex-shrink-0" />
+                <span>{forgotError}</span>
+              </div>
+            )}
+
+            {forgotSuccess && (
+              <div className="flex items-center bg-emerald-50 text-emerald-800 p-3 rounded-xl mb-4 text-xs font-medium border border-emerald-200">
+                <CheckmarkCircle02Icon size={16} className="mr-2 flex-shrink-0 text-emerald-600" />
+                <span>{forgotSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Votre adresse email</label>
+                <input
+                  type="email"
+                  required
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                  placeholder="votre-email@exemple.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                  placeholder="Minimum 6 caractères"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Confirmer le mot de passe</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotModalOpen(false)}
+                  className="px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium text-xs transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isForgotLoading}
+                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-xs shadow-md transition-all disabled:opacity-50"
+                >
+                  {isForgotLoading ? 'Mise à jour...' : 'Réinitialiser mon mot de passe'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

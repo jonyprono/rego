@@ -62,7 +62,7 @@ export default function Register() {
       
       navigate('/login');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erreur lors de l\'inscription');
+      setError(err.response?.data?.message || "Nom d'utilisateur ou mot de passe incorrect.");
     } finally {
       setIsLoading(false);
     }
