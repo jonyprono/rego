@@ -5,10 +5,7 @@ import {
   Mail01Icon, 
   LockPasswordIcon, 
   SmartPhone01Icon, 
-  AddTeamIcon, 
   ArrowRight01Icon,
-  CheckmarkCircle02Icon,
-  Building04Icon,
   Alert01Icon
 } from 'hugeicons-react';
 import axios from 'axios';
@@ -171,22 +168,21 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Entreprise */}
+              {/* Téléphone */}
               <div className="space-y-4 sm:space-y-5">
-                <h3 className="text-base sm:text-lg font-bold text-secondary-900 border-b border-gray-100/50 pb-2">Informations de l'entreprise</h3>
+                <h3 className="text-base sm:text-lg font-bold text-secondary-900 border-b border-gray-100/50 pb-2">Contact</h3>
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold text-secondary-800">Nom de l'entreprise</label>
+                  <label className="block text-sm font-semibold text-secondary-800">Numéro de téléphone</label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-secondary-500 group-focus-within:text-primary-700 transition-colors">
-                      <Building04Icon size={20} />
+                      <SmartPhone01Icon size={20} />
                     </div>
                     <input
-                      type="text"
-                      required
-                      value={formData.companyName}
-                      onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       className="block w-full pl-11 pr-4 py-3 sm:py-3.5 bg-white/60 backdrop-blur-md border border-white focus:bg-white focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm font-medium rounded-xl shadow-inner"
-                      placeholder="Ex: Entreprise de Maintenance SA"
+                      placeholder="Ex: +229 97 00 00 00"
                     />
                   </div>
                 </div>
